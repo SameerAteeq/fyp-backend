@@ -7,7 +7,10 @@ const upload = require("../src/middleware/upload");
 // Create a new medicine donation
 router.post(
   "/medicines",
-  upload.single("image"),
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "frontImage", maxCount: 1 },
+  ]),
   authTokenRequired,
   medicineController.createMedicineDonation
 );
@@ -35,7 +38,10 @@ router.get(
 router.put(
   "/medicines/:id",
   authTokenRequired,
-  upload.single("image"),
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "frontImage", maxCount: 1 },
+  ]),
   medicineController.updateMedicineDonation
 );
 

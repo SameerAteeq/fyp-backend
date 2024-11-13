@@ -47,10 +47,17 @@ const createMedicineDonation = async (req, res) => {
       });
     }
 
-    // Handle image upload
+    // Handle image uploads (main image and front image)
     let imagePath = "";
-    if (req.file) {
-      imagePath = req.file.path; // Save the image path
+    let frontImagePath = "";
+
+    if (req.files) {
+      if (req.files.image) {
+        imagePath = req.files.image[0].path; // Save the image path
+      }
+      if (req.files.frontImage) {
+        frontImagePath = req.files.frontImage[0].path; // Save the front image path
+      }
     }
 
     // Create new medicine donation entry
@@ -66,7 +73,8 @@ const createMedicineDonation = async (req, res) => {
       description,
       donor: req.user._id, // Set the current authenticated user as the donor
       donationStatus, // Set the default status to 'Pending'
-      image: imagePath, // Set the image path
+      image: imagePath, // Set the main image path
+      frontImage: frontImagePath, // Set the front image path
     });
 
     // Save the new medicine donation to the database
@@ -199,20 +207,42 @@ const updateMedicineDonation = async (req, res) => {
       return res.status(404).json({ message: "Medicine not found." });
     }
 
-    // Handle image upload
-    if (req.file) {
-      // Delete the old image if it exists
-      if (existingMedicine.image) {
-        fs.unlink(path.resolve(existingMedicine.image), (err) => {
-          if (err) {
-            console.error("Failed to delete old image:", err);
-            // Not throwing error to allow update to proceed
-          }
-        });
+    // Handle image uploads (main image and front image)
+    if (req.files) {
+      // Handle main image replacement
+      if (req.files.image) {
+        // Delete the old image if it exists
+        if (existingMedicine.image) {
+          fs.unlink(path.resolve(existingMedicine.image), (err) => {
+            if (err) {
+              console.error("Failed to delete old image:", err);
+              // Not throwing error to allow update to proceed
+            }
+          });
+        }
+
+        // Update the image path in the updatedData
+        updatedData.image = req.files.image[0].path.replace(/\\/g, "/"); // Replace backslashes with forward slashes for cross-platform compatibility
       }
 
-      // Update the image path in the updatedData
-      updatedData.image = req.file.path.replace(/\\/g, "/"); // Replace backslashes with forward slashes for cross-platform compatibility
+      // Handle front image replacement
+      if (req.files.frontImage) {
+        // Delete the old front image if it exists
+        if (existingMedicine.frontImage) {
+          fs.unlink(path.resolve(existingMedicine.frontImage), (err) => {
+            if (err) {
+              console.error("Failed to delete old front image:", err);
+              // Not throwing error to allow update to proceed
+            }
+          });
+        }
+
+        // Update the front image path in the updatedData
+        updatedData.frontImage = req.files.frontImage[0].path.replace(
+          /\\/g,
+          "/"
+        ); // Replace backslashes with forward slashes for cross-platform compatibility
+      }
     }
 
     // Update the donor to the current user (optional, based on your requirements)

@@ -63,6 +63,7 @@ const medicineSchema = new mongoose.Schema(
     },
 
     image: { type: String },
+    frontImage: { type: String },
   },
   { timestamps: true }
 );
